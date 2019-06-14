@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+    <!--spring-security本质上是一个过滤器-->
+    <!--1.放行的资源配置-->
+    <http security="none" pattern="/css/**"/>
+    <http security="none" pattern="/img/**"/>
+    <http security="none" pattern="/js/**"/>
+    <http security="none" pattern="/plugins/**"/>
+    <http security="none" pattern="/shoplogin.html"/>
+    <http security="none" pattern="/register.html"/>
+    <!--1.1注册访问放行,注册页面会访问seller控制器的增加方法-->
+    <http security="none" pattern="/seller/add.do"/>
+    <!--2.拦截资源配置-->
+    <!--use-expressions:代表不使用原生命名方式-->
+    <http use-expressions="false" >
+        <!--2.1拦截除了上面放行外的所以资源，拥有ROLE_ADMIN角色的用户可以访问-->
+        <intercept-url pattern="/**" access="ROLE_ADMIN"/>
+        <!--2.2登陆表单配置: <form-login/>  代表使用框架提供的登陆-->
+        <form-login  login-page="/shoplogin.html" authentication-failure-url="/shoplogin.html" default-target-url="/admin/index.html" always-use-default-target="true"/>
+        <!--2.3配置页面框架结构属性:如果不配置，页面不能加载框架结构-->
+        <headers>
+            <frame-options policy="SAMEORIGIN"/>
+        </headers>
+        <csrf disabled="true"/>
+        <!--CSR（F Cross-site request forgery）跨站请求伪造，也被称为“One Click Attack”或者 Session Riding，-->
+        <!--通常缩写为 CSRF 或者 XSRF，是一种对网站的恶意利用。-->
+    </http>
+    <!--3.配置认证其管理器-->
+    <authentication-manager>
+            <!--引用服务-->
+        <authentication-provider user-service-ref="useService">
+            <!--加密算法-->
+            <password-encoder ref="passwordEncoder"/>
+        </authentication-provider>
+    </authentication-manager>
+    <!--3.1配置加密算法-->
+    <beans:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+    <!--3.2配置需要调用的服务属性-->
+    <beans:bean id="useService" class="com.pinyougou.shop.service.UserServiceIpml">
+        <!--name对应属性名，类必须存在该字段的setter方法-->
+        <beans:property name="sellerService" ref="sellerService"/>
+    </beans:bean>
+    <!--3.3配置dubbo池：zookeeper服务-->
+    <dubbo:application name="pinyougou-shop-web"/>
+    <dubbo:registry address="zookeeper://192.168.25.128:2181"/>
+    <!--3.4从dubbo服务中拿到sellerService这个服务-->
+    <!--代表字段被调用的对象-->
+    <dubbo:reference interface="com.pinyougou.SellerService" id="sellerService"/>
+</beans:beans>
