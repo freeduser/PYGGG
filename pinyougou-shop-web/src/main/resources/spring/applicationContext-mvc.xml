@@ -6,7 +6,7 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
     <!--读取属性文件，将其加载到spring容器中-->
-    <context:property-placeholder location="classpath*:properties/application.properties"/>
+    <context:property-placeholder location="classpath*:properties/*.properties" ignore-unresolvable="true" />
     <!--前后端开发，配置servlet处理器和处理器适配器-->
     <mvc:annotation-driven>
         <!--配置fastjson进行Java对象和字符串的转换-->
